@@ -15,6 +15,33 @@ USER_ID = "wes.house" # your Spotify username
 TOKEN = "BQBlqk2oPljOqA3Dkb-dJmOknLDkKy52bqhZWUsQ4uVXuV2V2a4aKoD0rRN30wG04PYyxm_XkHYNiHvn6dDkkWbaR_fRSR9qFhAG-4hptY-eak16RfuOlxifR2VGA2ehKsUg61-3RvvKDSQFmrU" # your Spotify API token
 
 
+def check_for_valid_data(df: pd.DataFrame) -> bool:
+    # Check to see if the dataframe is empty
+    if df.empty:
+        print("No songs downloaded. Finishing execution")
+        return False
+
+    # Check for primary keys (timestamps)
+    if pd.Series(df["played_at"]).is_unique:
+        pass
+    else:
+        raise Exception("Primary key check is violated.")
+
+    # Check for null values
+    if df.isnull().values.any():
+        raise Exception("Null values found")
+
+    # Check that all timestamps are from yesterday
+    yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+    yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    timestamps = df["timestamp"].tolist()
+    for timestamp in timestamps:
+        if datetime.datetime.strptime(timestamp, "%Y-%m-%d") != yesterday:
+            raise Exception("At least one of the songs does not come from previous 24 hours.")
+
+    return True
+
 if __name__ == "__main__":
 
 
@@ -39,7 +66,7 @@ if __name__ == "__main__":
 
     for song in data['items']:
         song_title.append(song["track"]["name"])
-        artist.append(song["track"]["album"]["artists"][0])
+        artist.append(song["track"]["album"]["artists"][0]["name"])
         time_played_list.append(song["played_at"])
         timestamps.append(song["played_at"][0:10])
 
@@ -52,4 +79,14 @@ if __name__ == "__main__":
     }
 
     song_df = pd.DataFrame(song_dict, columns = ["song_title", "artists", "played_at", "timestamp"])
-    print(song_df)
+
+    # Validate
+    if check_for_valid_data(song_df):
+      print("Data is valid, please proceed to loadstage")
+
+
+
+
+
+
+
