@@ -32,4 +32,24 @@ if __name__ == "__main__":
 
     data = r.json()
 
-    print(data)
+    song_title = []
+    artist = []
+    time_played_list = []
+    timestamps = []
+
+    for song in data['items']:
+        song_title.append(song["track"]["name"])
+        artist.append(song["track"]["album"]["artists"][0])
+        time_played_list.append(song["played_at"])
+        timestamps.append(song["played_at"][0:10])
+
+
+    song_dict = {
+        "song_title" : song_title,
+        "artists": artist,
+        "played_at": time_played_list,
+        "timestamp": timestamps
+    }
+
+    song_df = pd.DataFrame(song_dict, columns = ["song_title", "artists", "played_at", "timestamp"])
+    print(song_df)
